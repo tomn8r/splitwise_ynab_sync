@@ -33,35 +33,60 @@ class SW():
         owed_expenses = []
         for expense in expenses:
             owed_expense = {}
-            users = expense.getUsers()
-            user_names = []
-            expense_cost = float(expense.getCost())
-            is_append = False
-
-            for user in users:
-                user_first_name = user.getFirstName()
-                if user_first_name == self.current_user:
-                    paid = float(user.getPaidShare())
-                    description = expense.getDescription()
-                    if paid == 0 and description.strip() != 'Payment':
-                        owed_expense['owed'] = float(user.getOwedShare())
-                        owed_expense['date'] = expense.getDate()
-                        owed_expense['created_time'] = expense.getCreatedAt()
-                        owed_expense['updated_time'] = expense.getUpdatedAt()
-                        owed_expense['deleted_time'] = expense.getDeletedAt()
-                        owed_expense['description'] = description
-                        owed_expense['cost'] = expense_cost
-                        is_append = True
-                else:       # get user names other than current_user
-                    paid_share = float(user.getPaidShare())
-                    if paid_share == expense_cost:
-                        user_names.append("[" + user_first_name + "]")
-                    else:
-                        user_names.append(user_first_name)
-            if is_append:      # check category instead of description
-                owed_expense['users'] = user_names
+            repayments = expense.getRepayments()
+            
+            for debt in repayments:
+                lender = debt.getFromUser()
+                borrower = debt.getToUser()
+                lender_first_name = lender.getFirstName()
+                borrower_first_name = borrower.getFirstName()
+                owed_expense['description'] = expense.getDescription();
+                owed_expense['deleted_time'] = expense.getDeletedAt()
+                owed_expense['date'] = expense.getDate()
+                owed_expense['created_time'] = expense.getCreatedAt()
+                owed_expense['updated_time'] = expense.getUpdatedAt()
+                if lender_first_name == self.current_user:
+                    owed_expense['amount'] = -int(debt.getAmount())
+                    
+                elif borrower_first_name == self.current_user:
+                    owed_expense['amount'] = int(debt.getAmount())
+                else
+                    owed_expense['amount'] = 0
+                    
                 owed_expenses.append(owed_expense)
+                
         return owed_expenses
+
+        #   owed_expense = {}
+        #   users = expense.getUsers()
+        #   user_names = []
+        #   expense_cost = float(expense.getCost())
+        #   is_append = False
+
+        #    for user in users:
+        #        user_first_name = user.getFirstName()
+        #        if user_first_name == self.current_user:
+        #            paid = float(user.getPaidShare())
+        #            description = expense.getDescription()
+        #            if paid == 0 and description.strip() != 'Payment':
+        #                owed_expense['owed'] = float(user.getOwedShare())
+        #                owed_expense['date'] = expense.getDate()
+        #                owed_expense['created_time'] = expense.getCreatedAt()
+        #                owed_expense['updated_time'] = expense.getUpdatedAt()
+        #                owed_expense['deleted_time'] = expense.getDeletedAt()
+        #                owed_expense['description'] = description
+        #                owed_expense['cost'] = expense_cost
+        #                is_append = True
+        #        else:       # get user names other than current_user
+        #            paid_share = float(user.getPaidShare())
+        #            if paid_share == expense_cost:
+        #                user_names.append("[" + user_first_name + "]")
+        #            else:
+        #                user_names.append(user_first_name)
+        #    if is_append:      # check category instead of description
+        #        owed_expense['users'] = user_names
+        #        owed_expenses.append(owed_expense)
+        #return owed_expenses
     
     def create_expense(self, expense):
         e = Expense()
