@@ -6,6 +6,13 @@ from sw import SW
 from ynab import YNABClient
 from utils import setup_environment_vars, combine_names
 
+
+env_file_path = os.getenv('GITHUB_ENV')
+if not env_file_path:
+    raise OSError('GITHUB_ENV environment variable not found')
+with open(env_file_path, 'a') as env_file:
+    env_file.write(f'{name}={value}\n')
+
 class ynab_splitwise_transfer():
     def __init__(self, sw_consumer_key, sw_consumer_secret,sw_api_key, 
                     ynab_personal_access_token, ynab_budget_name, ynab_account_name) -> None:
@@ -21,8 +28,18 @@ class ynab_splitwise_transfer():
         # timestamps
         now = datetime.now(timezone.utc)
         self.end_date = datetime(now.year, now.month, now.day)
-        self.sw_start_date = self.end_date - timedelta(days=25)
+
+        last_run = os.environ.get('LAST_RUN')
+                        
+        if my_variable:
+            self.sw_start_date = last_run
+            # Do something with the variable
+        else:
+            print("MY_VARIABLE is not set.")
+            self.sw_start_date = self.end_date - timedelta(days=25)
+           
         self.ynab_start_date = self.end_date - timedelta(days=7)
+        set_github_variable('LAST_RUN', self.end_date)
 
     def sw_to_ynab(self):
         self.logger.info("Moving transactions from Splitwise to YNAB...")
