@@ -50,7 +50,7 @@ class SW():
                     
                 elif borrower_first_name == self.current_user:
                     owed_expense['amount'] = int(debt.getAmount())
-                else
+                else:
                     owed_expense['amount'] = 0
                     
                 owed_expenses.append(owed_expense)
