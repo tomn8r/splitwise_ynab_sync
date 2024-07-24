@@ -21,7 +21,7 @@ class ynab_splitwise_transfer():
         # timestamps
         now = datetime.now(timezone.utc)
         self.end_date = datetime(now.year, now.month, now.day)
-        self.sw_start_date = self.end_date - timedelta(days=10)
+        self.sw_start_date = self.end_date - timedelta(days=15)
         self.ynab_start_date = self.end_date - timedelta(days=7)
 
     def sw_to_ynab(self):
@@ -42,7 +42,7 @@ class ynab_splitwise_transfer():
                                 "account_id": self.ynab_account_id,
                                 "date":expense['date'],
                                 "amount":int(expense['amount']*1000),
-                                "memo":expense['description'].strip(),
+                                "payee":expense['description'].strip(),
                                 #"memo":" ".join([expense['description'].strip() ,"with", combine_names(expense['users'])]),
                                 "cleared": "cleared"
                             }
