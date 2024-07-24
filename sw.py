@@ -38,17 +38,15 @@ class SW():
             for debt in repayments:
                 lender = debt.getFromUser()
                 borrower = debt.getToUser()
-                lender_first_name = lender.getFirstName()
-                borrower_first_name = borrower.getFirstName()
                 owed_expense['description'] = expense.getDescription();
                 owed_expense['deleted_time'] = expense.getDeletedAt()
                 owed_expense['date'] = expense.getDate()
                 owed_expense['created_time'] = expense.getCreatedAt()
                 owed_expense['updated_time'] = expense.getUpdatedAt()
-                if lender_first_name == self.current_user:
+                if lender == self.current_user_id:
                     owed_expense['amount'] = -int(debt.getAmount())
                     
-                elif borrower_first_name == self.current_user:
+                elif borrower == self.current_user_id:
                     owed_expense['amount'] = int(debt.getAmount())
                 else:
                     owed_expense['amount'] = 0
