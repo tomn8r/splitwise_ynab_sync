@@ -7,17 +7,10 @@ from ynab import YNABClient
 from utils import setup_environment_vars, combine_names
 
 
-def set_github_variable(name, value):
-  """Sets a GitHub Actions environment variable.
-  Args:
-    name: The name of the variable.
-    value: The value of the variable.
-  """
-  env_file_path = os.getenv('GITHUB_ENV')
-  if not env_file_path:
+env_file_path = os.getenv('GITHUB_ENV')
+if not env_file_path:
     raise OSError('GITHUB_ENV environment variable not found')
-
-  with open(env_file_path, 'a') as env_file:
+with open(env_file_path, 'a') as env_file:
     env_file.write(f'{name}={value}\n')
 
 class ynab_splitwise_transfer():
