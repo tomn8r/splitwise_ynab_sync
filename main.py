@@ -21,7 +21,7 @@ class ynab_splitwise_transfer():
         # timestamps
         now = datetime.now(timezone.utc)
         self.end_date = datetime(now.year, now.month, now.day)
-        self.sw_start_date = self.end_date - timedelta(days=15)
+        self.sw_start_date = self.end_date - timedelta(days=25)
         self.ynab_start_date = self.end_date - timedelta(days=7)
 
     def sw_to_ynab(self):
