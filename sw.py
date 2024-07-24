@@ -44,10 +44,10 @@ class SW():
                 owed_expense['created_time'] = expense.getCreatedAt()
                 owed_expense['updated_time'] = expense.getUpdatedAt()
                 if lender == self.current_user_id:
-                    owed_expense['amount'] = -int(debt.getAmount())
+                    owed_expense['amount'] = -float(debt.getAmount())
                     
                 elif borrower == self.current_user_id:
-                    owed_expense['amount'] = int(debt.getAmount())
+                    owed_expense['amount'] = float(debt.getAmount())
                 else:
                     owed_expense['amount'] = 0
                     
