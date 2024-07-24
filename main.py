@@ -39,7 +39,7 @@ class ynab_splitwise_transfer():
                 transaction = {
                                 "account_id": self.ynab_account_id,
                                 "date":expense['date'],
-                                "amount":int(expense['NetBalance']*1000),
+                                "amount":int(expense['balance']*1000),
                                 "memo":" ".join([expense['description'].strip() ,"with", combine_names(expense['users'])]),
                                 "cleared": "cleared"
                             }
