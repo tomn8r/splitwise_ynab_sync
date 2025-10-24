@@ -3,6 +3,8 @@
 ## What does it do?
 The code automates the process of importing transactions from Splitwise into your YNAB budget.By following instructions below, you can automate to run it daily using Github Actions. So, your Splitwise transactions will be imported everyday just like your other automated accounts.
 
+
+
 ## What change do you need in your YNAB workflow to implement this?
 You would need to create a new account named 'Splitwise' in your YNAB accounts(mentioned below in Setup #1).
 That is the only necessity for this repo.
