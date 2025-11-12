@@ -199,8 +199,8 @@ if __name__=="__main__":
                                 ynab_budget_name, ynab_account_name,
                                 ynab_to_sw_flag_color, sw_group_name)
 
-    # splitwise to ynab
-    a.sw_to_ynab()
-    
-    # ynab to splitwise
+    # ynab to splitwise (run first to create expenses in SW)
     a.ynab_to_sw()
+    
+    # splitwise to ynab (run second to pull back the split amounts)
+    a.sw_to_ynab()
