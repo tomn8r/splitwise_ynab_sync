@@ -85,6 +85,3 @@ if __name__ == "__main__":
 
     a = SW(consumer_key, consumer_secret, api_key)
     # e = a.get_expenses(dated_after="2023-11-29", dated_before="2023-12-01")
-    
-    a.create_expense()
-    # a.get_friends()

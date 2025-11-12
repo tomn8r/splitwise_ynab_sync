@@ -88,8 +88,3 @@ if __name__ == "__main__":
 
     # response = client.create_transaction(budget_id, transactions)
     # print("Transactions created on YNAB.")
-
-    t = client.get_last_transaction(budget_id, account_id)
-    print(t)
-    # transactions = client.get_transactions(budget_id, account_id, since_date="2023-11-28")
-    # print(transactions)
