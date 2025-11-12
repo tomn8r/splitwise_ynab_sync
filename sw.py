@@ -40,37 +40,53 @@ class SW():
                 owed_expenses.append(owed_expense)
                 
         return owed_expenses
-
-        #   owed_expense = {}
-        #   users = expense.getUsers()
-        #   user_names = []
-        #   expense_cost = float(expense.getCost())
-        #   is_append = False
-
-        #    for user in users:
-        #        user_first_name = user.getFirstName()
-        #        if user_first_name == self.current_user:
-        #            paid = float(user.getPaidShare())
-        #            description = expense.getDescription()
-        #            if paid == 0 and description.strip() != 'Payment':
-        #                owed_expense['owed'] = float(user.getOwedShare())
-        #                owed_expense['date'] = expense.getDate()
-        #                owed_expense['created_time'] = expense.getCreatedAt()
-        #                owed_expense['updated_time'] = expense.getUpdatedAt()
-        #                owed_expense['deleted_time'] = expense.getDeletedAt()
-        #                owed_expense['description'] = description
-        #                owed_expense['cost'] = expense_cost
-        #                is_append = True
-        #        else:       # get user names other than current_user
-        #            paid_share = float(user.getPaidShare())
-        #            if paid_share == expense_cost:
-        #                user_names.append("[" + user_first_name + "]")
-        #            else:
-        #                user_names.append(user_first_name)
-        #    if is_append:      # check category instead of description
-        #        owed_expense['users'] = user_names
-        #        owed_expenses.append(owed_expense)
-        #return owed_expenses
+    
+    def get_groups(self):
+        """Get all groups for the current user.
+        
+        Returns:
+            List of group objects
+        """
+        return self.sw.getGroups()
+    
+    def get_group_id_by_name(self, group_name):
+        """Get group ID by group name.
+        
+        Args:
+            group_name: Name of the group to find
+            
+        Returns:
+            Group ID if found, None otherwise
+        """
+        groups = self.get_groups()
+        for group in groups:
+            if group.getName() == group_name:
+                return group.getId()
+        return None
+    
+    def create_expense(self, group_id, description, amount, date):
+        """Create a new expense with 50/50 split in a group.
+        
+        Args:
+            group_id: The Splitwise group ID
+            description: Description of the expense
+            amount: Amount in dollars (will be converted to absolute value)
+            date: Date in YYYY-MM-DD format
+            
+        Returns:
+            Created expense object
+        """
+        from splitwise import Expense
+        
+        expense = Expense()
+        expense.setGroupId(group_id)
+        expense.setDescription(description)
+        # YNAB amounts are negative for expenses, make positive for Splitwise
+        expense.setCost(str(abs(amount)))
+        expense.setDate(date)
+        expense.setSplitEqually()  # Split 50/50 among group members
+        
+        return self.sw.createExpense(expense)
 
 
 
