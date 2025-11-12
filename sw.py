@@ -24,6 +24,7 @@ class SW():
             for debt in repayments:
                 lender = debt.getFromUser()
                 borrower = debt.getToUser()
+                owed_expense['id'] = str(expense.getId())  # Add expense ID for tracking
                 owed_expense['description'] = expense.getDescription();
                 owed_expense['deleted_time'] = expense.getDeletedAt()
                 owed_expense['date'] = expense.getDate()

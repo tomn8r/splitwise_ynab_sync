@@ -73,15 +73,15 @@ class StateManager:
             datetime: The start date for syncing.
         """
         if end_date is None:
-            now = datetime.now(timezone.utc)
-            end_date = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+            end_date = datetime.now(timezone.utc)
         
         last_sync = self.get_last_sync_date()
         
         if last_sync:
             logger.info(f"Found previous sync date: {last_sync.isoformat()}")
-            # Start from the day after the last sync to avoid duplicates
-            start_date = last_sync + timedelta(days=1)
+            # Start from the last sync time to catch any transactions added after the last sync
+            # Duplicates will be prevented by tracking synced transaction/expense IDs
+            start_date = last_sync
         else:
             logger.info(f"No previous sync found. Using default lookback of {self.DEFAULT_LOOKBACK_DAYS} days.")
             start_date = end_date - timedelta(days=self.DEFAULT_LOOKBACK_DAYS)
@@ -115,8 +115,12 @@ class StateManager:
             # Load existing state
             state = {}
             if os.path.exists(self.state_file):
-                with open(self.state_file, 'r') as f:
-                    state = json.load(f)
+                try:
+                    with open(self.state_file, 'r') as f:
+                        state = json.load(f)
+                except (json.JSONDecodeError, ValueError):
+                    # File exists but is empty or invalid - start fresh
+                    state = {}
             
             # Update synced IDs
             synced_ids = set(state.get('synced_transaction_ids', []))
@@ -130,4 +134,52 @@ class StateManager:
             logger.info(f"Added {len(transaction_ids)} transaction IDs to synced set")
         except Exception as e:
             logger.error(f"Error saving synced transaction IDs: {e}")
+            raise
+    
+    def get_synced_expense_ids(self):
+        """Get the set of Splitwise expense IDs that have been synced.
+        
+        Returns:
+            set: Set of synced Splitwise expense IDs (as strings).
+        """
+        if not os.path.exists(self.state_file):
+            return set()
+            
+        try:
+            with open(self.state_file, 'r') as f:
+                state = json.load(f)
+                return set(state.get('synced_expense_ids', []))
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            logger.warning(f"Error reading synced expense IDs: {e}")
+            return set()
+    
+    def add_synced_expense_ids(self, expense_ids):
+        """Add Splitwise expense IDs to the synced set.
+        
+        Args:
+            expense_ids: List or set of Splitwise expense IDs to mark as synced.
+        """
+        try:
+            # Load existing state
+            state = {}
+            if os.path.exists(self.state_file):
+                try:
+                    with open(self.state_file, 'r') as f:
+                        state = json.load(f)
+                except (json.JSONDecodeError, ValueError):
+                    # File exists but is empty or invalid - start fresh
+                    state = {}
+            
+            # Update synced expense IDs
+            synced_ids = set(state.get('synced_expense_ids', []))
+            synced_ids.update(str(id) for id in expense_ids)
+            state['synced_expense_ids'] = list(synced_ids)
+            state['updated_at'] = datetime.now(timezone.utc).isoformat()
+            
+            # Save state
+            with open(self.state_file, 'w') as f:
+                json.dump(state, f, indent=2)
+            logger.info(f"Added {len(expense_ids)} expense IDs to synced set")
+        except Exception as e:
+            logger.error(f"Error saving synced expense IDs: {e}")
             raise

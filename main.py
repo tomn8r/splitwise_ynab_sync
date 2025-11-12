@@ -24,9 +24,8 @@ class ynab_splitwise_transfer():
         self.state_manager = StateManager()  # For SW to YNAB sync
         self.ynab_to_sw_state_manager = StateManager('ynab_to_sw_state.json')  # For YNAB to SW sync
 
-        # timestamps
-        now = datetime.now(timezone.utc)
-        self.end_date = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+        # timestamps - use current time instead of midnight to capture all transactions
+        self.end_date = datetime.now(timezone.utc)
         self.sw_start_date = self.state_manager.get_sync_start_date(self.end_date)
         
         # YNAB to SW configuration
@@ -47,12 +46,23 @@ class ynab_splitwise_transfer():
         
 
         if expenses:
+            # Get already synced expense IDs to prevent duplicates
+            synced_expense_ids = self.state_manager.get_synced_expense_ids()
+            
             # process
             ynab_transactions = []
+            newly_synced_expense_ids = []
             for expense in expenses:
                 # don't import deleted expenses
                 if expense['deleted_time']:
                     continue
+                
+                # Skip already synced expenses to prevent duplicates
+                expense_id = expense.get('id')
+                if expense_id in synced_expense_ids:
+                    self.logger.debug(f"Skipping already synced expense {expense_id}")
+                    continue
+                
                 self.logger.info(expense)
                 transaction = {
                                 "account_id": self.ynab_account_id,
@@ -63,15 +73,20 @@ class ynab_splitwise_transfer():
                                 "cleared": "cleared"
                             }
                 ynab_transactions.append(transaction)
+                newly_synced_expense_ids.append(expense_id)
+            
             # export to ynab
             if ynab_transactions:
                 self.logger.info(f"Writing {len(ynab_transactions)} record(s) to YNAB.")
                 response = self.ynab.create_transaction(self.ynab_budget_id, ynab_transactions)
+                # Track synced expense IDs to prevent duplicates
+                if newly_synced_expense_ids:
+                    self.state_manager.add_synced_expense_ids(newly_synced_expense_ids)
                 # Save the successful sync date
                 self.state_manager.save_last_sync_date(self.end_date)
                 self.logger.info("Successfully synced transactions and saved state.")
             else:
-                self.logger.info("No transactions to write to YNAB.")
+                self.logger.info("No new transactions to write to YNAB.")
                 # Still update the state even if no transactions, to avoid re-checking same date range
                 self.state_manager.save_last_sync_date(self.end_date)
         else:
