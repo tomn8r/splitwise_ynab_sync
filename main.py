@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from sw import SW
 from ynab import YNABClient
 from utils import setup_environment_vars
+from state_manager import StateManager
 
 class ynab_splitwise_transfer():
     def __init__(self, sw_consumer_key, sw_consumer_secret,sw_api_key, 
@@ -18,10 +19,13 @@ class ynab_splitwise_transfer():
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         self.logger = logging.getLogger(__name__)
 
+        # Initialize state manager
+        self.state_manager = StateManager()
+
         # timestamps
         now = datetime.now(timezone.utc)
-        self.end_date = datetime(now.year, now.month, now.day)
-        self.sw_start_date = self.end_date - timedelta(days=1)
+        self.end_date = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+        self.sw_start_date = self.state_manager.get_sync_start_date(self.end_date)
 
     def sw_to_ynab(self):
         self.logger.info("Moving transactions from Splitwise to YNAB...")
@@ -50,10 +54,17 @@ class ynab_splitwise_transfer():
             if ynab_transactions:
                 self.logger.info(f"Writing {len(ynab_transactions)} record(s) to YNAB.")
                 response = self.ynab.create_transaction(self.ynab_budget_id, ynab_transactions)
+                # Save the successful sync date
+                self.state_manager.save_last_sync_date(self.end_date)
+                self.logger.info("Successfully synced transactions and saved state.")
             else:
                 self.logger.info("No transactions to write to YNAB.")
+                # Still update the state even if no transactions, to avoid re-checking same date range
+                self.state_manager.save_last_sync_date(self.end_date)
         else:
             self.logger.info("No transactions to write to YNAB.")
+            # Still update the state even if no transactions, to avoid re-checking same date range
+            self.state_manager.save_last_sync_date(self.end_date)
 
 
 

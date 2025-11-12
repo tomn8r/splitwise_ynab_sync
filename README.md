@@ -1,7 +1,13 @@
 # splitwise_ynab_sync
 
 ## What does it do?
-The code automates the process of importing transactions from Splitwise into your YNAB budget.By following instructions below, you can automate to run it daily using Github Actions. So, your Splitwise transactions will be imported everyday just like your other automated accounts.
+The code automates the process of importing transactions from Splitwise into your YNAB budget. By following instructions below, you can automate to run it daily using Github Actions. So, your Splitwise transactions will be imported everyday just like your other automated accounts.
+
+### Key Features
+- **No missed transactions**: The app tracks the last successful sync date and syncs all transactions since then, ensuring no transactions are missed if a GitHub Action fails to run
+- **Smart sync**: On first run or if state is lost, automatically syncs the last 7 days of transactions
+- **Optimized performance**: Uses dependency caching to reduce workflow run time
+- **Concurrent run protection**: Prevents overlapping syncs to avoid duplicate transactions
 
 
 
@@ -49,9 +55,17 @@ This repo moves transactions from Splitwise to YNAB.
         - Name: `YNAB_ACCOUNT_NAME`, Value: 'Splitwise' (created in step 1).
 
 
-The Github Actions now triggers this code repo at `12:00 UTC` everyday and transfers previous day's transactions from Splitwise to YNAB.
+The Github Actions now triggers this code repo at `12:13 UTC` everyday and transfers transactions from Splitwise to YNAB.
 
 If you would like to change the schedule time, change the cron expression in [python-app.yaml](.github/workflows/python-app.yml) file.
+
+### How it works
+The application maintains a persistent state file that tracks the last successful sync date. On each run:
+1. It retrieves the last sync date from the cache
+2. Syncs all transactions from the last sync date to today
+3. Updates the state with the current date after a successful sync
+
+This means if a GitHub Action fails to run for any reason (GitHub outage, workflow disabled, etc.), the next successful run will catch up and sync all missed transactions automatically.
 
 
 ## Bugfixes
