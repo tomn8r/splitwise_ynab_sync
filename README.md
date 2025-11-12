@@ -1,13 +1,20 @@
 # splitwise_ynab_sync
 
 ## What does it do?
-The code automates the process of importing transactions from Splitwise into your YNAB budget. By following instructions below, you can automate to run it daily using Github Actions. So, your Splitwise transactions will be imported everyday just like your other automated accounts.
+The code automates bidirectional syncing between Splitwise and YNAB:
+1. **Splitwise → YNAB**: Automatically imports transactions from Splitwise into your YNAB budget
+2. **YNAB → Splitwise**: Flag transactions in YNAB (using a specific flag color) to automatically create 50/50 split expenses in a Splitwise group
+
+By following instructions below, you can automate to run it daily using Github Actions.
 
 ### Key Features
+- **Bidirectional sync**: Move transactions between Splitwise and YNAB in both directions
 - **No missed transactions**: The app tracks the last successful sync date and syncs all transactions since then, ensuring no transactions are missed if a GitHub Action fails to run
 - **Smart sync**: On first run or if state is lost, automatically syncs the last 7 days of transactions
+- **Flag-based triggering**: Simply flag a transaction in YNAB to sync it to Splitwise
 - **Optimized performance**: Uses dependency caching to reduce workflow run time
 - **Concurrent run protection**: Prevents overlapping syncs to avoid duplicate transactions
+- **Duplicate prevention**: Tracks synced transactions to avoid creating duplicates
 
 
 
@@ -20,14 +27,15 @@ That said, I would to mention my workflow:
 - Expenses paid by me: I split the expense between a category corrsponding to the expense and the 'Splitwise' category.
 - Expenses paid by others: I add my share as an expense under 'Splitwise' account and the corresponding category.
 
-## Which transactions are imported?
-The code imports all the **transactions for which you owe money**.
+## Which transactions are synced?
+- **Splitwise → YNAB**: Imports all transactions for which you owe money
+- **YNAB → Splitwise**: Syncs transactions you flag with the configured flag color (default: blue)
 
 ## Is it free?
 Yes. Since you will be deploying your own Github Actions to deploy, you will be using just around 15 minutes from the [free 2000 minutes per month](https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions#included-storage-and-minutes).
 
 ## Setup
-This repo moves transactions from Splitwise to YNAB.
+This repo enables bidirectional syncing between Splitwise and YNAB.
 
 1. Go to your YNAB budget ([YNAB](https://app.youneedabudget.com/)) and create a new account named `Splitwise`. This is where the imported transactions will flow into.
 2. Collect Credentials from YNAB and Splitwise:
@@ -53,19 +61,34 @@ This repo moves transactions from Splitwise to YNAB.
     - Similarly, Under `Variables` tab, using `New repository variable`, add:
         - Name: `YNAB_BUDGET_NAME`, Value: your YNAB budget name (check your YNAB app or website, if you don't know, fill 'My Budget')
         - Name: `YNAB_ACCOUNT_NAME`, Value: 'Splitwise' (created in step 1).
+        - Name: `YNAB_TO_SW_FLAG_COLOR`, Value: 'blue' (or any other flag color you prefer: red, orange, yellow, green, purple)
+        - Name: `SW_GROUP_NAME`, Value: name of your Splitwise group (e.g., 'Kate & Tom')
 
 
-The Github Actions now triggers this code repo at `12:13 UTC` everyday and transfers transactions from Splitwise to YNAB.
+The Github Actions now triggers this code repo at `12:13 UTC` everyday and syncs transactions bidirectionally between Splitwise and YNAB.
 
 If you would like to change the schedule time, change the cron expression in [python-app.yaml](.github/workflows/python-app.yml) file.
 
 ### How it works
+
+#### Splitwise → YNAB
 The application maintains a persistent state file that tracks the last successful sync date. On each run:
 1. It retrieves the last sync date from the cache
 2. Syncs all transactions from the last sync date to today
 3. Updates the state with the current date after a successful sync
 
 This means if a GitHub Action fails to run for any reason (GitHub outage, workflow disabled, etc.), the next successful run will catch up and sync all missed transactions automatically.
+
+#### YNAB → Splitwise
+To sync a transaction from YNAB to Splitwise:
+1. In YNAB, flag any transaction with the configured flag color (default: blue)
+2. The next sync run will automatically:
+   - Find all flagged transactions that haven't been synced yet
+   - Create corresponding 50/50 split expenses in your configured Splitwise group
+   - Clear the flag in YNAB after successful sync
+   - Track the transaction ID to prevent duplicate syncs
+
+The app maintains a separate state file for YNAB→Splitwise syncing to track which transactions have been synced and prevent duplicates.
 
 
 ## Bugfixes

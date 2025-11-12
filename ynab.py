@@ -44,6 +44,39 @@ class YNABClient:
             if account['name'].strip() == account_name.strip():
                 return account['id']
         return None
+    
+    def get_transactions(self, budget_id, since_date=None):
+        """Get transactions for a budget, optionally filtered by date.
+        
+        Args:
+            budget_id: The budget ID to get transactions from
+            since_date: Optional date string in YYYY-MM-DD format to filter transactions
+            
+        Returns:
+            List of transaction objects
+        """
+        endpoint = f"budgets/{budget_id}/transactions"
+        params = {}
+        if since_date:
+            params['since_date'] = since_date
+        
+        response = self._make_request("GET", endpoint, params=params)
+        return response['data']['transactions']
+    
+    def update_transaction(self, budget_id, transaction_id, transaction_data):
+        """Update a transaction.
+        
+        Args:
+            budget_id: The budget ID
+            transaction_id: The transaction ID to update
+            transaction_data: Dict with transaction fields to update (e.g., {'flag_color': 'red'})
+            
+        Returns:
+            Response from YNAB API
+        """
+        endpoint = f"budgets/{budget_id}/transactions/{transaction_id}"
+        data = {"transaction": transaction_data}
+        return self._make_request("PUT", endpoint, data=data)
 
 
     

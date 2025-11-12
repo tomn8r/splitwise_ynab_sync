@@ -87,3 +87,47 @@ class StateManager:
             start_date = end_date - timedelta(days=self.DEFAULT_LOOKBACK_DAYS)
         
         return start_date
+    
+    def get_synced_transaction_ids(self):
+        """Get the set of transaction IDs that have been synced.
+        
+        Returns:
+            set: Set of synced transaction IDs.
+        """
+        if not os.path.exists(self.state_file):
+            return set()
+            
+        try:
+            with open(self.state_file, 'r') as f:
+                state = json.load(f)
+                return set(state.get('synced_transaction_ids', []))
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            logger.warning(f"Error reading synced transaction IDs: {e}")
+            return set()
+    
+    def add_synced_transaction_ids(self, transaction_ids):
+        """Add transaction IDs to the synced set.
+        
+        Args:
+            transaction_ids: List or set of transaction IDs to mark as synced.
+        """
+        try:
+            # Load existing state
+            state = {}
+            if os.path.exists(self.state_file):
+                with open(self.state_file, 'r') as f:
+                    state = json.load(f)
+            
+            # Update synced IDs
+            synced_ids = set(state.get('synced_transaction_ids', []))
+            synced_ids.update(transaction_ids)
+            state['synced_transaction_ids'] = list(synced_ids)
+            state['updated_at'] = datetime.now(timezone.utc).isoformat()
+            
+            # Save state
+            with open(self.state_file, 'w') as f:
+                json.dump(state, f, indent=2)
+            logger.info(f"Added {len(transaction_ids)} transaction IDs to synced set")
+        except Exception as e:
+            logger.error(f"Error saving synced transaction IDs: {e}")
+            raise
