@@ -45,46 +45,9 @@ class YNABClient:
                 return account['id']
         return None
 
-    def get_categories(self, budget_id):
-        return self._make_request("GET", f"budgets/{budget_id}/categories")
-    
-    def get_category_id(self, budget_id, category_name):
-        categories = self.get_categories(budget_id)
-        for category_group in categories['data']['category_groups']:
-            for category in category_group['categories']:
-                if category['name'].strip() == category_name.strip():
-                    return category['id']
-        return None
 
-    def get_transactions(self, budget_id, account_id=None, since_date=None, before_date=None):
-        endpoint = f"budgets/{budget_id}/transactions"
-        if account_id:
-            endpoint = f"budgets/{budget_id}/accounts/{account_id}/transactions"
-        
-        params = {}
-        if since_date:
-            params['since_date'] = since_date
-        if before_date:
-            params['before_date'] = before_date
-
-        return self._make_request("GET", endpoint, params=params)
     
-    def get_last_transaction(self, budget_id, account_id):
-        transactions = self.get_transactions(budget_id, account_id)
-        if not transactions['data']['transactions']:
-            return None  # No transactions found
 
-        # Sort transactions by date in descending order and pick the first one
-        last_transaction = sorted(
-            transactions['data']['transactions'], 
-            key=lambda x: x['date'], 
-            reverse=True
-        )[0]
-        return last_transaction
-    
-    def update_transaction(self, budget_id, transaction_id, transaction_data):
-        endpoint = f"budgets/{budget_id}/transactions/{transaction_id}"
-        return self._make_request("PATCH", endpoint, data=transaction_data)
 
 
 if __name__ == "__main__":
