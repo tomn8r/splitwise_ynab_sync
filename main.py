@@ -85,18 +85,17 @@ class ynab_splitwise_transfer():
         self.logger.info(f"Sync window: {self.sw_start_date.strftime('%Y-%m-%d %H:%M:%S %Z')} to {self.end_date.strftime('%Y-%m-%d %H:%M:%S %Z')}")
         
         try:
-            # Convert timezone-aware datetimes to dates for Splitwise API
-            # Splitwise API expects dates in YYYY-MM-DD format
-            start_date_str = self.sw_start_date.date()
-            # Add one day to end_date to ensure we capture expenses added "today"
-            # The Splitwise API dated_before is exclusive, so adding 1 day ensures
-            # we capture all expenses from today. Duplicates are prevented by tracking
-            # synced expense IDs in state_manager.
-            end_date_with_buffer = self.end_date + timedelta(days=1)
-            end_date_str = end_date_with_buffer.date()
+            # Use updated_after to fetch expenses that were created or modified since last sync.
+            # This ensures we catch expenses created from YNAB→Splitwise sync, even if their
+            # original date is older than our sync window.
+            # For example: A YNAB transaction dated 3 days ago is flagged today. When we create
+            # it in Splitwise, it gets date=3 days ago. Using updated_after catches it because
+            # it was just created/updated today.
+            # Duplicates are prevented by tracking synced expense IDs in state_manager.
+            updated_after_str = self.sw_start_date.isoformat()
             
-            self.logger.info(f"Fetching Splitwise expenses from {start_date_str} to {end_date_str}")
-            expenses = self.sw.get_expenses(dated_after=start_date_str, dated_before=end_date_str)
+            self.logger.info(f"Fetching Splitwise expenses updated after {updated_after_str}")
+            expenses = self.sw.get_expenses(updated_after=updated_after_str)
             self.logger.info(f"Retrieved {len(expenses) if expenses else 0} expense(s) from Splitwise")
         except Exception as e:
             self.logger.error(f"Failed to fetch Splitwise expenses: {e}")

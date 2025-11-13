@@ -121,6 +121,7 @@ If flagged transactions aren't syncing to Splitwise:
 ## Bugfixes
 1. Apr 6, 2024: fixed the `UnboundLocalError: local variable 'paid' referenced before assignment` error.
 2. Nov 12, 2024: Added timezone support, comprehensive error handling, and enhanced logging to fix date mismatch issues and improve debugging capabilities.
+3. Nov 13, 2024: Fixed blue flagged transactions not syncing back their "share" from Splitwise to YNAB by using `updated_after` parameter to catch newly created expenses regardless of their original date.
 
 ### How to keep your repo updated to this repo?
 1. On your forked repo, you would see something like `This branch is X commits behind amit-hm/splitwise_yanb_sync:main`.
