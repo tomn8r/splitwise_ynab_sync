@@ -28,19 +28,33 @@ class SW():
             logger.error(f"Failed to get current Splitwise user: {e}")
             raise
 
-    def get_expenses(self, dated_before=None, dated_after=None):
-        """Get expenses between two dates.
+    def get_expenses(self, dated_before=None, dated_after=None, updated_after=None, updated_before=None):
+        """Get expenses between two dates or updated within a time range.
         
         Args:
             dated_before: End date (YYYY-MM-DD or date object)
             dated_after: Start date (YYYY-MM-DD or date object)
+            updated_after: Filter by update time (ISO 8601 datetime string)
+            updated_before: Filter by update time (ISO 8601 datetime string)
             
         Returns:
             List of expense dictionaries with owed amounts
         """
         try:
-            logger.info(f"Fetching Splitwise expenses from {dated_after} to {dated_before}")
-            expenses = self.sw.getExpenses(limit=self.limit, dated_before=dated_before, dated_after=dated_after)
+            log_parts = []
+            if dated_after or dated_before:
+                log_parts.append(f"dated from {dated_after} to {dated_before}")
+            if updated_after or updated_before:
+                log_parts.append(f"updated from {updated_after} to {updated_before}")
+            logger.info(f"Fetching Splitwise expenses {', '.join(log_parts)}")
+            
+            expenses = self.sw.getExpenses(
+                limit=self.limit, 
+                dated_before=dated_before, 
+                dated_after=dated_after,
+                updated_after=updated_after,
+                updated_before=updated_before
+            )
             logger.info(f"Retrieved {len(expenses)} expense(s) from Splitwise")
         except Exception as e:
             logger.error(f"Failed to fetch Splitwise expenses: {e}")
