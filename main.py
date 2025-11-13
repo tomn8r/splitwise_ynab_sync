@@ -88,7 +88,12 @@ class ynab_splitwise_transfer():
             # Convert timezone-aware datetimes to dates for Splitwise API
             # Splitwise API expects dates in YYYY-MM-DD format
             start_date_str = self.sw_start_date.date()
-            end_date_str = self.end_date.date()
+            # Add one day to end_date to ensure we capture expenses added "today"
+            # The Splitwise API dated_before is exclusive, so adding 1 day ensures
+            # we capture all expenses from today. Duplicates are prevented by tracking
+            # synced expense IDs in state_manager.
+            end_date_with_buffer = self.end_date + timedelta(days=1)
+            end_date_str = end_date_with_buffer.date()
             
             self.logger.info(f"Fetching Splitwise expenses from {start_date_str} to {end_date_str}")
             expenses = self.sw.get_expenses(dated_after=start_date_str, dated_before=end_date_str)
