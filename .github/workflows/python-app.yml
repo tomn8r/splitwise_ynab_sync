@@ -60,6 +60,7 @@ jobs:
         ynab_account_name: ${{ vars.ynab_account_name }}
         ynab_to_sw_flag_color: ${{ vars.ynab_to_sw_flag_color }}
         sw_group_name: ${{ vars.sw_group_name }}
+        user_timezone: ${{ vars.user_timezone || 'Australia/Sydney' }}
       run: python main.py
 
     # Save sync state for next run

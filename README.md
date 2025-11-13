@@ -12,9 +12,12 @@ By following instructions below, you can automate to run it daily using Github A
 - **No missed transactions**: The app tracks the last successful sync date and syncs all transactions since then, ensuring no transactions are missed if a GitHub Action fails to run
 - **Smart sync**: On first run or if state is lost, automatically syncs the last 7 days of transactions
 - **Flag-based triggering**: Simply flag a transaction in YNAB to sync it to Splitwise
+- **Timezone-aware**: Properly handles date comparisons across timezones (configurable, defaults to Sydney, Australia)
 - **Optimized performance**: Uses dependency caching to reduce workflow run time
 - **Concurrent run protection**: Prevents overlapping syncs to avoid duplicate transactions
 - **Duplicate prevention**: Tracks synced transactions to avoid creating duplicates
+- **Comprehensive logging**: Detailed logs for debugging and monitoring sync operations
+- **Robust error handling**: Gracefully handles API failures with informative error messages
 
 
 
@@ -63,6 +66,7 @@ This repo enables bidirectional syncing between Splitwise and YNAB.
         - Name: `YNAB_ACCOUNT_NAME`, Value: 'Splitwise' (created in step 1).
         - Name: `YNAB_TO_SW_FLAG_COLOR`, Value: 'blue' (or any other flag color you prefer: red, orange, yellow, green, purple)
         - Name: `SW_GROUP_NAME`, Value: name of your Splitwise group (e.g., 'Kate & Tom')
+        - Name: `USER_TIMEZONE`, Value: your timezone (e.g., 'Australia/Sydney', 'America/New_York', 'Europe/London'). If not specified, defaults to 'Australia/Sydney'.
 
 
 The Github Actions now triggers this code repo at `12:13 UTC` everyday and syncs transactions bidirectionally between Splitwise and YNAB.
@@ -91,8 +95,32 @@ To sync a transaction from YNAB to Splitwise:
 The app maintains a separate state file for YNAB→Splitwise syncing to track which transactions have been synced and prevent duplicates.
 
 
+## Troubleshooting
+
+### Timezone Issues
+If you notice that transactions are missing or syncing at unexpected times:
+1. Check that the `USER_TIMEZONE` variable is set correctly in your GitHub repository settings
+2. Use a valid timezone string from the [IANA timezone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (e.g., 'Australia/Sydney', 'America/New_York', 'Europe/London')
+3. Review the GitHub Actions logs to see what timezone is being used - it's logged at the start of each sync
+
+### Sync Errors
+If the sync fails:
+1. Check the GitHub Actions logs for detailed error messages
+2. Verify all credentials are correct in your repository secrets
+3. Ensure your YNAB budget and account names match exactly (including spaces and capitalization)
+4. Verify your Splitwise group name is correct
+5. Check that you have active internet connectivity to both YNAB and Splitwise APIs
+
+### YNAB to Splitwise Flag-Based Sync
+If flagged transactions aren't syncing to Splitwise:
+1. Verify the `YNAB_TO_SW_FLAG_COLOR` variable is set correctly (must be one of: red, orange, yellow, green, blue, purple)
+2. Check that the `SW_GROUP_NAME` variable matches your Splitwise group name exactly
+3. Review the logs to see if the flagged transactions are being detected
+4. Ensure the transactions are not deleted in YNAB
+
 ## Bugfixes
 1. Apr 6, 2024: fixed the `UnboundLocalError: local variable 'paid' referenced before assignment` error.
+2. Nov 12, 2024: Added timezone support, comprehensive error handling, and enhanced logging to fix date mismatch issues and improve debugging capabilities.
 
 ### How to keep your repo updated to this repo?
 1. On your forked repo, you would see something like `This branch is X commits behind amit-hm/splitwise_yanb_sync:main`.
