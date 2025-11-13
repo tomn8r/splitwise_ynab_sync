@@ -138,7 +138,20 @@ class SW():
             expense.setSplitEqually()  # Split 50/50 among group members
             
             logger.info(f"Creating Splitwise expense: {description}, ${abs(amount):.2f}, {date}")
-            created_expense = self.sw.createExpense(expense)
+            # createExpense returns a tuple (expense, errors)
+            created_expense, errors = self.sw.createExpense(expense)
+            
+            # Check for errors
+            if errors:
+                error_msg = f"Splitwise API returned errors: {errors}"
+                logger.error(error_msg)
+                raise Exception(error_msg)
+            
+            if not created_expense:
+                error_msg = "Failed to create expense: No expense object returned"
+                logger.error(error_msg)
+                raise Exception(error_msg)
+            
             logger.info(f"Successfully created expense with ID: {created_expense.getId()}")
             return created_expense
         except Exception as e:
